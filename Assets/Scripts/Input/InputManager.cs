@@ -5,8 +5,12 @@ using System;
 
 public class InputManager : MonoBehaviour
 {
-    public static Action<Vector3> s_MouseKeyPressed;
-    public static Action<Vector3> s_ScreenTouched;
+    [SerializeField]
+    private RayCaster m_RayCaster;
+    void Awake()
+    {
+        Input.multiTouchEnabled = false;
+    }
 
     // Update is called once per frame
     void Update()
@@ -15,13 +19,38 @@ public class InputManager : MonoBehaviour
 
         if(Input.GetMouseButtonUp(0))
         {
-            s_MouseKeyPressed?.Invoke(Input.mousePosition);
+            GameObject tempCardObject = m_RayCaster.GetScreenPosition(Input.mousePosition);
+
+            if (tempCardObject != null)
+            {
+                Card cardObject = tempCardObject.GetComponent<Card>();
+                cardObject.DetectCard();
+            }
+
         }
 #endif
-        if(Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began && Input.touches[0].phase != TouchPhase.Began)
+        if(Input.touchCount > 0)
         {
-            s_ScreenTouched?.Invoke(Input.touches[0].position);
+           Touch touch = Input.GetTouch(0);
+            if(touch.phase == TouchPhase.Began )
+            {
+                Vector3 tempPosition = new Vector3(touch.position.x, touch.position.y, 0f);
+                GameObject tempCardObject = m_RayCaster.GetScreenPosition(tempPosition);
+                if (tempCardObject != null)
+                {
+                    Card cardObject = tempCardObject.GetComponent<Card>();
+                    cardObject.DetectCard();
+                }
+            }
         }
-
     }
 }
+
+
+
+/*if(Input.touchCount > 0 && Input.touches[0].phase == TouchPhase.Began)
+        {
+            Touch touch = Input.GetTouch(0);
+            Vector3 tempPosition = new Vector3(touch.position.x, touch.position.y , 0f);
+            s_ScreenTouched?.Invoke(tempPosition);
+        }*/
