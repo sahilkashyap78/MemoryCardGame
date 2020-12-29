@@ -11,7 +11,7 @@ public class RayCaster : MonoBehaviour
     private const float ZERO_POSITION = 0f;
     
 
-    public GameObject GetScreenPosition(Vector3 position)
+    public GameObject RaycastGameObject(Vector3 position)
     {
         float x_Position = m_MainCamera.ScreenToWorldPoint(new Vector3(position.x, ZERO_POSITION, ZERO_POSITION)).x;
         float y_Position = m_MainCamera.ScreenToWorldPoint(new Vector3(ZERO_POSITION, position.y, ZERO_POSITION)).y;

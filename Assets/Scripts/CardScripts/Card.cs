@@ -5,11 +5,25 @@ using UnityEngine;
 public class Card : MonoBehaviour
 {
     [SerializeField]
-    private Transform m_Raycaster;
+    private GameController m_GameController;
+    [SerializeField]
     private Sprite m_CardType;
+    private SpriteRenderer m_SpriteRenderer;
+    [HideInInspector]
+    public int id;
 
-    public void DetectCard()
+    void Start()
     {
-        Debug.Log("Card Detected");
+        m_SpriteRenderer = GetComponent<SpriteRenderer>();
+        if(m_GameController.tempCardId < m_GameController.TotalCards)
+        {
+            id = m_GameController.tempCardId;
+            m_GameController.tempCardId++;
+        }
+    }
+
+    void OnDisable()
+    {
+        m_GameController.tempCardId = 0;
     }
 }
