@@ -13,6 +13,7 @@ public class InputManager : MonoBehaviour
     [SerializeField]
     private Text m_Text;
     private int m_TouchCount;
+    private const int LEFT_CLICK = 0;
 
     void Awake()
     {
@@ -20,103 +21,65 @@ public class InputManager : MonoBehaviour
         m_TouchCount = 0;
     }
 
-    // Update is called once per frame
     void Update()
     {
+        Touch currentTouch;
 #if UNITY_EDITOR
-
-        if(Input.GetMouseButtonDown(0))
+        currentTouch = new Touch();
+        currentTouch.position = Input.mousePosition;
+        currentTouch.phase = TouchPhase.Stationary;
+        if (Input.GetMouseButtonDown(LEFT_CLICK))
         {
-            GameObject tempCardObject = m_RayCaster.RaycastGameObject(Input.mousePosition);
-            if (tempCardObject != null)
-            {
-                m_TouchDownCard = tempCardObject.GetComponent<Card>();
-            }
-            else
-            {
-                m_TouchDownCard = null;
-            }
+            currentTouch.phase = TouchPhase.Began;
+        }
+        else if (Input.GetMouseButtonUp(LEFT_CLICK))
+        {
+            currentTouch.phase = TouchPhase.Ended;
         }
 
-        if(Input.GetMouseButtonUp(0))
+#elif UNITY_ANDROID 
+        if(Input.touchCount > 0)
         {
-            GameObject tempCardObject = m_RayCaster.RaycastGameObject(Input.mousePosition);
-            if (tempCardObject != null)
-            {
-                m_TouchUpCard = tempCardObject.GetComponent<Card>();
-
-                if(m_TouchUpCard != null && m_TouchDownCard != null)
-                {
-                    if (m_TouchDownCard.id == m_TouchUpCard.id)
-                    {
-                        m_TouchCount++;
-                        m_Text.text = "Touch"+" "+m_TouchCount;
-                    }
-                }
-            }
-            else
-            {
-                m_TouchUpCard = null;
-            }
+            currentTouch = Input.GetTouch(0);
         }
 
-#elif UNITY_ANDROID
-        if (Input.touchCount > 0)
-        {
-           Touch touch = Input.GetTouch(0);
-            
-            if (touch.phase == TouchPhase.Began)
-            {
-                Vector3 tempPosition = new Vector3(touch.position.x, touch.position.y, 0f);
-                GameObject tempCardObject = m_RayCaster.RaycastGameObject(tempPosition);
-                if (tempCardObject != null)
-                {
-                    m_TouchDownCard = tempCardObject.GetComponent<Card>();
-                }
-                else
-                {
-                    m_TouchDownCard = null;
-                }
-            }
-
-            if(touch.phase == TouchPhase.Ended)
-            {
-                Vector3 tempPosition = new Vector3(touch.position.x, touch.position.y, 0f);
-                GameObject tempCardObject = m_RayCaster.RaycastGameObject(tempPosition);
-                if (tempCardObject != null)
-                {
-                    m_TouchUpCard = tempCardObject.GetComponent<Card>();
-
-                    if (m_TouchUpCard != null && m_TouchDownCard != null)
-                    {
-                        if (m_TouchDownCard.id == m_TouchUpCard.id)
-                        {
-                           m_TouchCount++;
-                           m_Text.text = "Touch"+" "+m_TouchCount;
-                        }
-                        m_TouchDownCard = null;
-                        m_TouchUpCard = null;
-                    }
-                }
-                else
-                {
-                    m_TouchUpCard = null;
-                }
-            }
-
-        }
 #endif
+        CheckCurrentPhase(currentTouch);
+    }
+
+    private void CheckCurrentPhase(Touch currentTouch)
+    {
+        if (currentTouch.phase == TouchPhase.Began)
+        {
+            m_TouchDownCard = GetCardReference(currentTouch);
+        }
+        else if (currentTouch.phase == TouchPhase.Ended)
+        {
+            m_TouchUpCard = GetCardReference(currentTouch);
+            CompareCards();
+        }
+    }
+
+    private Card GetCardReference(Touch currentTouch)
+    {
+        GameObject raycastedObject = m_RayCaster.RaycastGameObject(currentTouch.position);
+        if (raycastedObject != null)
+        {
+            Card tempCard = raycastedObject.GetComponent<Card>();
+            return tempCard;
+        }
+        return null;
+    }
+
+    private void CompareCards()
+    {
+        if (m_TouchUpCard != null && m_TouchDownCard != null)
+        {
+            if (m_TouchDownCard.id == m_TouchUpCard.id)
+            {
+                m_TouchCount++;
+                m_Text.text = "Touch" + " " + m_TouchCount;
+            }
+        }
     }
 }
-
-
-
-/*
-                Vector3 tempPosition = new Vector3(touch.position.x, touch.position.y, 0f);
-                GameObject tempCardObject = m_RayCaster.RaycastGameObject(tempPosition);
-                if (tempCardObject != null)
-                {
-                    Card cardObject = tempCardObject.GetComponent<Card>();
-                    Debug.Log(cardObject.id);
-                    cardObject.DetectCard();
-                }*/

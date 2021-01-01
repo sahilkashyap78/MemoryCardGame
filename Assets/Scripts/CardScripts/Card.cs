@@ -20,7 +20,7 @@ public class Card : MonoBehaviour
             id = m_GameController.tempCardId;
             m_GameController.tempCardId++;
         }
-    }
+    } 
 
     void OnDisable()
     {
