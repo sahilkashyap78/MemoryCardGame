@@ -10,15 +10,18 @@ public class InputManager : MonoBehaviour
     private RayCaster m_RayCaster;
     private Card m_TouchDownCard = null;
     private Card m_TouchUpCard = null;
-    [SerializeField]
-    private Text m_Text;
     private int m_TouchCount;
     private const int LEFT_CLICK = 0;
+    [HideInInspector]
+    public bool m_CanTouchCard;
+    [SerializeField]
+    GameController m_GameController;
 
     void Awake()
     {
         Input.multiTouchEnabled = false;
         m_TouchCount = 0;
+        m_CanTouchCard = false;
     }
 
     void Update()
@@ -49,14 +52,17 @@ public class InputManager : MonoBehaviour
 
     private void CheckCurrentPhase(Touch currentTouch)
     {
-        if (currentTouch.phase == TouchPhase.Began)
+        if(m_GameController.currentState == GameController.State.PLAY)
         {
-            m_TouchDownCard = GetCardReference(currentTouch);
-        }
-        else if (currentTouch.phase == TouchPhase.Ended)
-        {
-            m_TouchUpCard = GetCardReference(currentTouch);
-            CompareCards();
+            if (currentTouch.phase == TouchPhase.Began)
+            {
+                m_TouchDownCard = GetCardReference(currentTouch);
+            }
+            else if (currentTouch.phase == TouchPhase.Ended)
+            {
+                m_TouchUpCard = GetCardReference(currentTouch);
+                CompareCards();
+            }
         }
     }
 
@@ -78,7 +84,7 @@ public class InputManager : MonoBehaviour
             if (m_TouchDownCard.id == m_TouchUpCard.id)
             {
                 m_TouchCount++;
-                m_Text.text = "Touch" + " " + m_TouchCount;
+                Debug.Log(m_TouchCount);
             }
         }
     }
