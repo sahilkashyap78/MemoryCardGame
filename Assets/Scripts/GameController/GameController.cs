@@ -9,9 +9,9 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private GameObject m_CardPrefab;
     [SerializeField]
-    private int m_Rows = 4;
+    private int m_Rows;
     [SerializeField]
-    private int m_Columns = 3;
+    private int m_Columns;
     [SerializeField]
     private Transform m_World;
     [SerializeField]
@@ -25,15 +25,25 @@ public class GameController : MonoBehaviour
     private bool m_CanPutNextCard;
     [SerializeField]
     private List<Sprite> m_FaceSprites = new List<Sprite>();
-    private int m_FaceSprirteIndex;
+    private int faceSprirteIndex;
     private List<int> m_FaceSpriteIds = new List<int>();
-    private bool m_TakeRandomId;
+    private List<int> m_RandomList = new List<int>();
+    private int m_TotalCards;
 
     public enum State
     {
         INITIALIZE,
         PLAY
     }
+
+    public enum CardType
+    {
+        KINGOFDIAMOND,
+        ACEOFHEART,
+        ACEOFSPADE,
+        KINGOFSPADE
+    };
+
     private State m_State;
     public State currentState
     {
@@ -55,33 +65,52 @@ public class GameController : MonoBehaviour
 
     void Awake()
     {
-        m_TakeRandomId = false;
-        m_FaceSprirteIndex = 0;
+        m_TotalCards = m_Rows * m_Columns;
         m_State = State.INITIALIZE;
         m_DestinationPosition.x = m_World.position.x - (((float)m_Columns / 2 * (CARDWIDTH + m_CardGap)) - (CARDWIDTH / 2f + m_CardGap / 2f));
         m_DestinationPosition.y = m_World.position.y + (((float)m_Rows / 2 * (CARDHEIGHT + m_CardGap)) - (CARDHEIGHT / 2f + m_CardGap / 2f));
         m_InitialPosition = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height * -0.6f, 0f));
+        SetRandomList();
+        ShuffleList(m_RandomList);
         SetFaceId();
-        ShuffleCards(m_FaceSpriteIds);
+        ShuffleList(m_FaceSpriteIds);
+    }
 
+    private void SetRandomList()
+    {
+        for(int index = 0; index < m_FaceSprites.Count; index++)
+        {
+            m_RandomList.Add(index);
+        }
     }
 
     private void SetFaceId()
     {
+        bool takeRandomId = false;
+        int faceSprirteIndex = 0;
+        int randomizeIndex = 0;
+        int cardPairs = m_TotalCards / 2;
+        int randomizePoint = (cardPairs / m_FaceSprites.Count) * m_FaceSprites.Count; 
+       // Debug.Log(randomizePoint);
         for (int index = 0; index < (m_Rows * m_Columns) / 2; index++)
         {
-            if ((m_FaceSprirteIndex >= m_FaceSprites.Count) || m_TakeRandomId)
+            if ((faceSprirteIndex >= m_FaceSprites.Count) || takeRandomId)
             {
-                m_TakeRandomId = true;
-                m_FaceSprirteIndex = Random.Range(0, m_FaceSprites.Count);
+                faceSprirteIndex = 0;
+                if (index + 1 >= randomizePoint)
+                {
+                    takeRandomId = true;
+                    faceSprirteIndex = m_RandomList[randomizeIndex];
+                    randomizeIndex++;
+                }
             }
-            m_FaceSpriteIds.Add(m_FaceSprirteIndex);
-            m_FaceSpriteIds.Add(m_FaceSprirteIndex);
-            m_FaceSprirteIndex++;
+            m_FaceSpriteIds.Add(faceSprirteIndex);
+            m_FaceSpriteIds.Add(faceSprirteIndex);
+            faceSprirteIndex++;
         }
     }
 
-    void ShuffleCards(List<int> faceCardIds)
+    void ShuffleList(List<int> faceCardIds)
     {
         for (int index = 0; index < faceCardIds.Count; index++)
         {
@@ -94,6 +123,7 @@ public class GameController : MonoBehaviour
 
     void Start()
     {
+        //StartCoroutine(CheckNumbers());
         StartCoroutine(DistributeCard());
     }
 
@@ -102,6 +132,14 @@ public class GameController : MonoBehaviour
         m_CanPutNextCard = true;
     }
 
+    IEnumerator CheckNumbers()
+    {
+        for(int index =0; index< m_FaceSpriteIds.Count; index++)
+        {
+            Debug.Log(m_FaceSpriteIds[index]);
+            yield return null;
+        }
+    }
     IEnumerator DistributeCard()
     {
         int tempCardId = 0;
@@ -112,7 +150,7 @@ public class GameController : MonoBehaviour
                 m_CanPutNextCard = false;
                 GameObject tempCard = Instantiate(m_CardPrefab, m_InitialPosition, Quaternion.identity, m_World);
                 Card card = tempCard.GetComponent<Card>();
-                card.Initialize(tempCardId, (Card.Type)m_FaceSpriteIds[tempCardId], m_InitialPosition, m_DestinationPosition, m_NextCardCallBack);
+                card.Initialize(tempCardId, (CardType)m_FaceSpriteIds[tempCardId], m_InitialPosition, m_DestinationPosition, m_NextCardCallBack);
                 while (m_CanPutNextCard == false)
                 {
                     yield return new WaitForEndOfFrame();

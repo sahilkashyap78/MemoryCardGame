@@ -22,15 +22,9 @@ public class Card : MonoBehaviour
         }
     }
 
-    public enum Type
-    {
-        KINGOFDIAMOND,
-        ACEOFHEART,
-        ACEOFSPADE,
-        KINGOFSPADE
-    };
+   
 
-    private Type m_CurrentType;
+    private GameController.CardType m_CurrentType;
 
     void Awake()
     {
@@ -42,7 +36,7 @@ public class Card : MonoBehaviour
         Debug.Log(m_CurrentType);
     }
 
-    public void Initialize(int id, Type currentType, Vector3 initialPosition, Vector3 destinationposition, Action nextCardCallBack)
+    public void Initialize(int id, GameController.CardType currentType, Vector3 initialPosition, Vector3 destinationposition, Action nextCardCallBack)
     {
         m_Id = id;
         m_CurrentType = currentType;
