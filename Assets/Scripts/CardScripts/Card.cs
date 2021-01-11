@@ -14,7 +14,6 @@ public class Card : MonoBehaviour
     private Vector3 m_DestinationPosition;
     [SerializeField]
     private float m_MoveSpeed = 45f;
-
     public float id
     {
         get
@@ -23,15 +22,25 @@ public class Card : MonoBehaviour
         }
     }
 
-    void Start()
+   
+
+    private GameController.CardType m_CurrentType;
+
+    void Awake()
     {
         m_SpriteRenderer = GetComponent<SpriteRenderer>();
+       
+    }
+    void Start()
+    {
+        Debug.Log(m_CurrentType);
     }
 
-    public void Initialize(int id, Vector3 initialPoaition, Vector3 destinationposition, Action nextCardCallBack)
+    public void Initialize(int id, GameController.CardType currentType, Vector3 initialPosition, Vector3 destinationposition, Action nextCardCallBack)
     {
         m_Id = id;
-        m_InitialPosition = initialPoaition;
+        m_CurrentType = currentType;
+        m_InitialPosition = initialPosition;
         m_DestinationPosition = destinationposition;
         StartCoroutine(MoveCard(nextCardCallBack));
     }
