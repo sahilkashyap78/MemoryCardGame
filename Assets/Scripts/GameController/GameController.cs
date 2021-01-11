@@ -21,12 +21,13 @@ public class GameController : MonoBehaviour
     Vector3 m_InitialPosition;
     private const float CARDWIDTH = 2.8f;
     private const float CARDHEIGHT =3.8f;
+    private const float MIN_CARDS = 8f;
     private Action m_NextCardCallBack;
     private bool m_CanPutNextCard;
     [SerializeField]
     private List<Sprite> m_FaceSprites = new List<Sprite>();
     private int faceSprirteIndex;
-    private List<int> m_FaceSpriteIds = new List<int>();
+    private List<CardType> m_FaceSpriteType = new List<CardType>();
     private List<int> m_RandomList = new List<int>();
     private int m_TotalCards;
 
@@ -73,7 +74,15 @@ public class GameController : MonoBehaviour
         SetRandomList();
         ShuffleList(m_RandomList);
         SetFaceId();
-        ShuffleList(m_FaceSpriteIds);
+        ShuffleCardType(m_FaceSpriteType);
+    }
+
+    void Start()
+    {
+        if(m_TotalCards >= MIN_CARDS)
+        {
+            StartCoroutine(DistributeCard());
+        }
     }
 
     private void SetRandomList()
@@ -91,7 +100,6 @@ public class GameController : MonoBehaviour
         int randomizeIndex = 0;
         int cardPairs = m_TotalCards / 2;
         int randomizePoint = (cardPairs / m_FaceSprites.Count) * m_FaceSprites.Count; 
-       // Debug.Log(randomizePoint);
         for (int index = 0; index < (m_Rows * m_Columns) / 2; index++)
         {
             if ((faceSprirteIndex >= m_FaceSprites.Count) || takeRandomId)
@@ -104,9 +112,20 @@ public class GameController : MonoBehaviour
                     randomizeIndex++;
                 }
             }
-            m_FaceSpriteIds.Add(faceSprirteIndex);
-            m_FaceSpriteIds.Add(faceSprirteIndex);
+            m_FaceSpriteType.Add((CardType)faceSprirteIndex);
+            m_FaceSpriteType.Add((CardType)faceSprirteIndex);
             faceSprirteIndex++;
+        }
+    }
+
+    void ShuffleCardType(List<CardType> faceCardIds)
+    {
+        for (int index = 0; index < faceCardIds.Count; index++)
+        {
+            int tempId = (int)faceCardIds[index];
+            int randomId = Random.Range(index, faceCardIds.Count);
+            faceCardIds[index] = faceCardIds[randomId];
+            faceCardIds[randomId] = (CardType)tempId;
         }
     }
 
@@ -115,16 +134,10 @@ public class GameController : MonoBehaviour
         for (int index = 0; index < faceCardIds.Count; index++)
         {
             int tempId = faceCardIds[index];
-            int randomId = Random.Range(tempId, faceCardIds.Count);
+            int randomId = Random.Range(index, faceCardIds.Count);
             faceCardIds[index] = faceCardIds[randomId];
             faceCardIds[randomId] = tempId;
         }
-    }
-
-    void Start()
-    {
-        //StartCoroutine(CheckNumbers());
-        StartCoroutine(DistributeCard());
     }
 
     void CheckNextCardStatus()
@@ -132,14 +145,7 @@ public class GameController : MonoBehaviour
         m_CanPutNextCard = true;
     }
 
-    IEnumerator CheckNumbers()
-    {
-        for(int index =0; index< m_FaceSpriteIds.Count; index++)
-        {
-            Debug.Log(m_FaceSpriteIds[index]);
-            yield return null;
-        }
-    }
+   
     IEnumerator DistributeCard()
     {
         int tempCardId = 0;
@@ -150,7 +156,7 @@ public class GameController : MonoBehaviour
                 m_CanPutNextCard = false;
                 GameObject tempCard = Instantiate(m_CardPrefab, m_InitialPosition, Quaternion.identity, m_World);
                 Card card = tempCard.GetComponent<Card>();
-                card.Initialize(tempCardId, (CardType)m_FaceSpriteIds[tempCardId], m_InitialPosition, m_DestinationPosition, m_NextCardCallBack);
+                card.Initialize(tempCardId, m_FaceSpriteType[tempCardId], m_InitialPosition, m_DestinationPosition, m_NextCardCallBack);
                 while (m_CanPutNextCard == false)
                 {
                     yield return new WaitForEndOfFrame();
