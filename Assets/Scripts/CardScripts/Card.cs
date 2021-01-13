@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+
+
 public class Card : MonoBehaviour
 {
     [SerializeField]
@@ -14,6 +16,16 @@ public class Card : MonoBehaviour
     private Vector3 m_DestinationPosition;
     [SerializeField]
     private float m_MoveSpeed = 45f;
+    private Sprite m_FaceSprite;
+    [SerializeField]
+    Sprite m_BackSprite;
+    private Animator m_Animator;
+    private bool m_FlipToFace;
+    private bool m_FliptoBack;
+    private bool m_Idle;
+    private string m_Flip = "CANFLIP";
+    private bool m_CanFlip;
+
     public float id
     {
         get
@@ -22,24 +34,50 @@ public class Card : MonoBehaviour
         }
     }
 
-   
-
     private GameController.CardType m_CurrentType;
 
     void Awake()
     {
+        m_CanFlip = true;
+        m_Animator = GetComponent<Animator>();
         m_SpriteRenderer = GetComponent<SpriteRenderer>();
        
     }
+
     void Start()
     {
         Debug.Log(m_CurrentType);
     }
 
-    public void Initialize(int id, GameController.CardType currentType, Vector3 initialPosition, Vector3 destinationposition, Action nextCardCallBack)
+    public void FlipCard()
     {
+        m_Animator.SetBool(m_Flip, m_CanFlip);
+        if (m_CanFlip)
+        {
+            m_CanFlip = false;
+        }
+        else if(!m_CanFlip)
+        {
+            m_CanFlip = true;
+        }
+    }
+
+    public void ChangeBackToFace()
+    {
+        m_SpriteRenderer.sprite = m_FaceSprite;
+    }
+
+    public void ChangeFaceToBack()
+    {
+        m_SpriteRenderer.sprite = m_BackSprite;
+    }
+
+    public void Initialize(int id, CardData cardData, Vector3 initialPosition, Vector3 destinationposition, Action nextCardCallBack)
+    {
+        //Sprite faceSprite, GameController.CardType currentType,
         m_Id = id;
-        m_CurrentType = currentType;
+        m_CurrentType = cardData.CardType;
+        m_FaceSprite = cardData.FaceSprite;
         m_InitialPosition = initialPosition;
         m_DestinationPosition = destinationposition;
         StartCoroutine(MoveCard(nextCardCallBack));

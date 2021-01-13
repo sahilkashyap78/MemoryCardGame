@@ -4,10 +4,36 @@ using UnityEngine;
 using System;
 using Random = UnityEngine.Random;
 
+[Serializable]
+public class CardData
+{
+    [SerializeField]
+    private GameController.CardType m_CardType;
+    [SerializeField]
+    private Sprite m_FaceSprite;
+    public GameController.CardType CardType
+    {
+        get
+        {
+            return m_CardType;
+        }
+    }
+    public Sprite FaceSprite
+    {
+        get
+        {
+            return m_FaceSprite;
+        }
+    }
+}
+
+
 public class GameController : MonoBehaviour
 {
     [SerializeField]
     private GameObject m_CardPrefab;
+    [SerializeField]
+    private CardData[] m_CardData; 
     [SerializeField]
     private int m_Rows;
     [SerializeField]
@@ -25,9 +51,9 @@ public class GameController : MonoBehaviour
     private Action m_NextCardCallBack;
     private bool m_CanPutNextCard;
     [SerializeField]
-    private List<Sprite> m_FaceSprites = new List<Sprite>();
-    private int faceSprirteIndex;
-    private List<CardType> m_FaceSpriteType = new List<CardType>();
+    private Sprite[] m_FaceCards;
+    private int m_FaceSprirteIndex;
+    private List<CardType> m_FaceCardType = new List<CardType>();
     private List<int> m_RandomList = new List<int>();
     private int m_TotalCards;
 
@@ -56,11 +82,13 @@ public class GameController : MonoBehaviour
 
     void OnEnable()
     {
+        m_InputManager.s_CardTouched += ChangeCardSprite;
         m_NextCardCallBack += CheckNextCardStatus;
     }
 
     void OnDisable()
     {
+        m_InputManager.s_CardTouched -= ChangeCardSprite;
         m_NextCardCallBack -= CheckNextCardStatus;
     }
 
@@ -74,7 +102,7 @@ public class GameController : MonoBehaviour
         SetRandomList();
         ShuffleList(m_RandomList);
         SetFaceId();
-        ShuffleCardType(m_FaceSpriteType);
+        ShuffleCardType(m_FaceCardType);
     }
 
     void Start()
@@ -85,9 +113,14 @@ public class GameController : MonoBehaviour
         }
     }
 
+    void ChangeCardSprite(Card card)
+    {
+        card.FlipCard();
+    }
+
     private void SetRandomList()
     {
-        for(int index = 0; index < m_FaceSprites.Count; index++)
+        for(int index = 0; index < m_FaceCards.Length; index++)
         {
             m_RandomList.Add(index);
         }
@@ -99,10 +132,10 @@ public class GameController : MonoBehaviour
         int faceSprirteIndex = 0;
         int randomizeIndex = 0;
         int cardPairs = m_TotalCards / 2;
-        int randomizePoint = (cardPairs / m_FaceSprites.Count) * m_FaceSprites.Count; 
+        int randomizePoint = (cardPairs / m_FaceCards.Length) * m_FaceCards.Length; 
         for (int index = 0; index < (m_Rows * m_Columns) / 2; index++)
         {
-            if ((faceSprirteIndex >= m_FaceSprites.Count) || takeRandomId)
+            if ((faceSprirteIndex >= m_FaceCards.Length) || takeRandomId)
             {
                 faceSprirteIndex = 0;
                 if (index + 1 >= randomizePoint)
@@ -112,8 +145,8 @@ public class GameController : MonoBehaviour
                     randomizeIndex++;
                 }
             }
-            m_FaceSpriteType.Add((CardType)faceSprirteIndex);
-            m_FaceSpriteType.Add((CardType)faceSprirteIndex);
+            m_FaceCardType.Add((CardType)faceSprirteIndex);
+            m_FaceCardType.Add((CardType)faceSprirteIndex);
             faceSprirteIndex++;
         }
     }
@@ -156,7 +189,7 @@ public class GameController : MonoBehaviour
                 m_CanPutNextCard = false;
                 GameObject tempCard = Instantiate(m_CardPrefab, m_InitialPosition, Quaternion.identity, m_World);
                 Card card = tempCard.GetComponent<Card>();
-                card.Initialize(tempCardId, m_FaceSpriteType[tempCardId], m_InitialPosition, m_DestinationPosition, m_NextCardCallBack);
+                card.Initialize(tempCardId, m_CardData[(int)m_FaceCardType[tempCardId]], m_InitialPosition, m_DestinationPosition, m_NextCardCallBack);
                 while (m_CanPutNextCard == false)
                 {
                     yield return new WaitForEndOfFrame();

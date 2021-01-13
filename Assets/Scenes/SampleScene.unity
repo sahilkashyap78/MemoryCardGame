@@ -522,6 +522,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
         type: 3}
+      propertyPath: m_CardData.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_FaceCards.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
       propertyPath: m_CardPrefab
       value: 
       objectReference: {fileID: 3019722701441852417, guid: e00a18706054bf74bbeb13f646f724ab,
@@ -539,7 +549,7 @@ PrefabInstance:
     - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
         type: 3}
       propertyPath: m_Columns
-      value: 6
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
         type: 3}
@@ -582,6 +592,69 @@ PrefabInstance:
     - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
         type: 3}
       propertyPath: m_FaceSprites.Array.data[3]
+      value: 
+      objectReference: {fileID: 21300000, guid: bd487833377a41f429613a91b384177c,
+        type: 3}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_CardData.Array.data[0].m_FaceSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 9f8bd1b643a99134692f92dd6c25a307,
+        type: 3}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_CardData.Array.data[1].m_CardType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_CardData.Array.data[1].m_FaceSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 5e6cc13499badc44a97a8cd2417f72bc,
+        type: 3}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_CardData.Array.data[2].m_CardType
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_CardData.Array.data[2].m_FaceSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 509d2a093d5d9a04c9995e6b7a00ff81,
+        type: 3}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_CardData.Array.data[3].m_CardType
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_CardData.Array.data[3].m_FaceSprite
+      value: 
+      objectReference: {fileID: 21300000, guid: bd487833377a41f429613a91b384177c,
+        type: 3}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_FaceCards.Array.data[0]
+      value: 
+      objectReference: {fileID: 21300000, guid: 9f8bd1b643a99134692f92dd6c25a307,
+        type: 3}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_FaceCards.Array.data[1]
+      value: 
+      objectReference: {fileID: 21300000, guid: 5e6cc13499badc44a97a8cd2417f72bc,
+        type: 3}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_FaceCards.Array.data[2]
+      value: 
+      objectReference: {fileID: 21300000, guid: 509d2a093d5d9a04c9995e6b7a00ff81,
+        type: 3}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_FaceCards.Array.data[3]
       value: 
       objectReference: {fileID: 21300000, guid: bd487833377a41f429613a91b384177c,
         type: 3}

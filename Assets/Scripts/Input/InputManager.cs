@@ -1,11 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 using UnityEngine.UI;
+using System;
 
 public class InputManager : MonoBehaviour
 {
+    public Action<Card> s_CardTouched;
     [SerializeField]
     private RayCaster m_RayCaster;
     private Card m_TouchDownCard = null;
@@ -16,6 +17,7 @@ public class InputManager : MonoBehaviour
     public bool m_CanTouchCard;
     [SerializeField]
     GameController m_GameController;
+    
 
     void Awake()
     {
@@ -83,6 +85,7 @@ public class InputManager : MonoBehaviour
         {
             if (m_TouchDownCard.id == m_TouchUpCard.id)
             {
+                s_CardTouched?.Invoke(m_TouchDownCard);
                 m_TouchCount++;
                 Debug.Log(m_TouchCount);
             }
