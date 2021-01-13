@@ -56,6 +56,10 @@ public class GameController : MonoBehaviour
     private List<CardType> m_FaceCardType = new List<CardType>();
     private List<int> m_RandomList = new List<int>();
     private int m_TotalCards;
+    private Card m_FirstCard;
+    private Card m_SecondCard;
+    private int m_CardAssigningCounter;
+    private int m_CardPairsCounter;
 
     public enum State
     {
@@ -82,18 +86,20 @@ public class GameController : MonoBehaviour
 
     void OnEnable()
     {
-        m_InputManager.s_CardTouched += ChangeCardSprite;
+        m_InputManager.s_CardTouched += InitializeCards;
         m_NextCardCallBack += CheckNextCardStatus;
     }
 
     void OnDisable()
     {
-        m_InputManager.s_CardTouched -= ChangeCardSprite;
+        m_InputManager.s_CardTouched -= InitializeCards;
         m_NextCardCallBack -= CheckNextCardStatus;
     }
 
     void Awake()
     {
+        m_CardAssigningCounter = 0;
+        m_CardPairsCounter = 0;
         m_TotalCards = m_Rows * m_Columns;
         m_State = State.INITIALIZE;
         m_DestinationPosition.x = m_World.position.x - (((float)m_Columns / 2 * (CARDWIDTH + m_CardGap)) - (CARDWIDTH / 2f + m_CardGap / 2f));
@@ -113,9 +119,50 @@ public class GameController : MonoBehaviour
         }
     }
 
-    void ChangeCardSprite(Card card)
+   void InitializeCards(Card card)
     {
-        card.FlipCard();
+        if(card.Canflip)
+        {
+            m_CardAssigningCounter++;
+            if(m_CardAssigningCounter == 1 && m_FirstCard == null)
+            {
+                m_FirstCard = card;
+                m_FirstCard.FlipCard();
+            }
+            else if(m_CardAssigningCounter == 2 && m_SecondCard == null)
+            {
+                m_SecondCard = card;
+                m_SecondCard.FlipCard();
+                Card firstCard = m_FirstCard;
+                Card secondCard = m_SecondCard;
+                m_FirstCard = null;
+                m_SecondCard = null;
+                m_CardAssigningCounter = 0;
+                if (firstCard.CurrentType == secondCard.CurrentType)
+                {
+                    if(m_CardPairsCounter >= m_TotalCards/2)
+                    {
+                        Debug.Log("You win");
+                    }
+                    else
+                    {
+                        m_CardPairsCounter++;
+                    }
+                }
+                else
+                {
+                    StartCoroutine(UnFlipCards(firstCard, secondCard));
+                }
+            }
+        }
+        //card.FlipCard();
+    }
+
+    IEnumerator UnFlipCards(Card firstCard, Card secondCard)
+    {
+        yield return new WaitForSeconds(1f);
+        firstCard.FlipCard();
+        secondCard.FlipCard();
     }
 
     private void SetRandomList()

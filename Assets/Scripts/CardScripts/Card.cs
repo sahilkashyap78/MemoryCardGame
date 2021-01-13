@@ -26,6 +26,14 @@ public class Card : MonoBehaviour
     private string m_Flip = "CANFLIP";
     private bool m_CanFlip;
 
+    public bool Canflip
+    {
+        get
+        {
+            return m_CanFlip;
+        }
+    }
+
     public float id
     {
         get
@@ -35,6 +43,14 @@ public class Card : MonoBehaviour
     }
 
     private GameController.CardType m_CurrentType;
+
+    public GameController.CardType CurrentType
+    {
+        get
+        {
+            return m_CurrentType;
+        }
+    }
 
     void Awake()
     {
