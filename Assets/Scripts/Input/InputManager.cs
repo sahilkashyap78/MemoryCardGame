@@ -42,7 +42,9 @@ public class InputManager : MonoBehaviour
             currentTouch.phase = TouchPhase.Ended;
         }
 
-#elif UNITY_ANDROID 
+
+#elif UNITY_ANDROID
+        currentTouch = new Touch();
         if(Input.touchCount > 0)
         {
             currentTouch = Input.GetTouch(0);
@@ -50,6 +52,7 @@ public class InputManager : MonoBehaviour
 
 #endif
         CheckCurrentPhase(currentTouch);
+
     }
 
     private void CheckCurrentPhase(Touch currentTouch)
@@ -83,11 +86,9 @@ public class InputManager : MonoBehaviour
     {
         if (m_TouchUpCard != null && m_TouchDownCard != null)
         {
-            if (m_TouchDownCard.id == m_TouchUpCard.id)
+            if (m_TouchDownCard.id == m_TouchUpCard.id && m_TouchDownCard.Canflip == true)
             {
                 s_CardTouched?.Invoke(m_TouchDownCard);
-                m_TouchCount++;
-                Debug.Log(m_TouchCount);
             }
         }
     }

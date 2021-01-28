@@ -12,8 +12,6 @@ public class Card : MonoBehaviour
     private Sprite m_CardType;
     private SpriteRenderer m_SpriteRenderer;
     private int m_Id;
-    private Vector3 m_InitialPosition;
-    private Vector3 m_DestinationPosition;
     [SerializeField]
     private float m_MoveSpeed = 45f;
     private Sprite m_FaceSprite;
@@ -25,6 +23,9 @@ public class Card : MonoBehaviour
     private bool m_Idle;
     private string m_Flip = "CANFLIP";
     private bool m_CanFlip;
+    private const string CAN_SCALE = "CANSCALE";
+    private const string IDLE_STATE = "IDLE";
+    private bool m_CanScale;
 
     public bool Canflip
     {
@@ -54,29 +55,31 @@ public class Card : MonoBehaviour
 
     void Awake()
     {
+        m_CanScale = true;
         m_CanFlip = true;
         m_Animator = GetComponent<Animator>();
         m_SpriteRenderer = GetComponent<SpriteRenderer>();
        
     }
 
-    void Start()
-    {
-        Debug.Log(m_CurrentType);
-    }
-
     public void FlipCard()
     {
         m_Animator.SetBool(m_Flip, m_CanFlip);
-        if (m_CanFlip)
-        {
-            m_CanFlip = false;
-        }
-        else if(!m_CanFlip)
-        {
-            m_CanFlip = true;
-        }
+        m_CanFlip = !m_CanFlip;
     }
+
+    public void ScaleCard()
+    {
+        m_Animator.SetTrigger("SCALE");
+        //m_Animator.SetBool(CAN_SCALE, m_CanScale);
+        //m_CanScale = !m_CanScale;
+    }
+
+    public void MoveToIdle()
+    {
+        m_Animator.SetTrigger(IDLE_STATE);
+    }
+
 
     public void ChangeBackToFace()
     {
@@ -90,28 +93,26 @@ public class Card : MonoBehaviour
 
     public void Initialize(int id, CardData cardData, Vector3 initialPosition, Vector3 destinationposition, Action nextCardCallBack)
     {
-        //Sprite faceSprite, GameController.CardType currentType,
         m_Id = id;
         m_CurrentType = cardData.CardType;
         m_FaceSprite = cardData.FaceSprite;
-        m_InitialPosition = initialPosition;
-        m_DestinationPosition = destinationposition;
-        StartCoroutine(MoveCard(nextCardCallBack));
+        StartCoroutine(MoveCard(initialPosition, destinationposition, nextCardCallBack));
     }
 
-    private IEnumerator MoveCard(Action callBack)
+    public IEnumerator MoveCard(Vector3 initialPosition, Vector3 destinationPosition, Action callBack)
     {
         float currentTime = 0f;
-        float distance = Vector2.Distance(m_InitialPosition, m_DestinationPosition);
+        float distance = Vector2.Distance(initialPosition, destinationPosition);
         float totalTime = distance / m_MoveSpeed;
         while (currentTime <= totalTime)
         {
             currentTime += Time.deltaTime;
             float interpolationPoint = currentTime / totalTime;
-            transform.localPosition = Vector3.Lerp(m_InitialPosition, m_DestinationPosition, interpolationPoint);
+            transform.localPosition = Vector3.Lerp(initialPosition, destinationPosition, interpolationPoint);
             yield return new WaitForEndOfFrame();
         }
         callBack();
     }
+
 }
 

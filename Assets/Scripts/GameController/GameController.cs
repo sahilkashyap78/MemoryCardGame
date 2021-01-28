@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 [Serializable]
@@ -27,7 +28,6 @@ public class CardData
     }
 }
 
-
 public class GameController : MonoBehaviour
 {
     [SerializeField]
@@ -45,8 +45,8 @@ public class GameController : MonoBehaviour
     private float m_CardGap = 1f;
     private Vector3 m_DestinationPosition;
     Vector3 m_InitialPosition;
-    private const float CARDWIDTH = 2.8f;
-    private const float CARDHEIGHT =3.8f;
+    private const float CARDWIDTH = 2.333f;
+    private const float CARDHEIGHT =3.166f;
     private const float MIN_CARDS = 8f;
     private Action m_NextCardCallBack;
     private bool m_CanPutNextCard;
@@ -58,13 +58,48 @@ public class GameController : MonoBehaviour
     private int m_TotalCards;
     private Card m_FirstCard;
     private Card m_SecondCard;
-    private int m_CardAssigningCounter;
     private int m_CardPairsCounter;
-
+    private const float WAITING_TIME = 1f;
+    private const float WONWAITING_TIME = 1f;
+    [SerializeField]
+    private Text m_TimerText;
+    private float m_Timer;
+    [SerializeField]
+    private GameOverPopUp m_PopUp;
+    private Card[] m_CardList;
+    private const float MIN_TIME = 0f;
+    private Text m_GameTimerText;
+    private bool m_IsTextActive = true;
+    private const string CAN_BLINK = "CanBlink";
+    private Animator m_GameTimerAnimator;
+    private int m_CountDownIndex;
+    [SerializeField]
+    private Text m_CountDownText;
+    private int m_CardIdIndex;
+    private Coroutine m_GameTimer = null;
+    private bool m_BlinkTimer;
+    private const int ZERO_INDEX = 0;
+    private const int RESET_COUNTER = 0;
+    private const string TOTALCOUNTDOWNSTRING = "3";
+    private const string TOTALGAMETIMER = "30";
+    private const float FLIPCARDWAIT = 0.5f;
+    private const int TOTALCOUNTDOWN = 3;
+    private const float GREEN_RANGE = 30f;
+    private const float YELLOW_RANGE = 20f;
+    private const float RED_RANGE = 10f;
+    private const float BLINK_RANGE = 5f;
+    private const float RESET_TIMER = 30F;
+    private string[] m_CountDown = { "GO", "1", "2", "3" };
+    [SerializeField]
+    private GameObject m_CountDownBackground;
+    //create array for the card list
     public enum State
     {
         INITIALIZE,
-        PLAY
+        PLAY,
+        WIN,
+        RESET,
+        LOSE
     }
 
     public enum CardType
@@ -86,21 +121,27 @@ public class GameController : MonoBehaviour
 
     void OnEnable()
     {
-        m_InputManager.s_CardTouched += InitializeCards;
+        m_InputManager.s_CardTouched += GetClickedCard;
         m_NextCardCallBack += CheckNextCardStatus;
     }
 
     void OnDisable()
     {
-        m_InputManager.s_CardTouched -= InitializeCards;
+        m_InputManager.s_CardTouched -= GetClickedCard;
         m_NextCardCallBack -= CheckNextCardStatus;
     }
 
     void Awake()
     {
-        m_CardAssigningCounter = 0;
+        m_CardIdIndex = ZERO_INDEX;
+        m_CountDownIndex = TOTALCOUNTDOWN;
+        m_BlinkTimer = false;
+        m_Timer = RESET_TIMER;
+        m_GameTimerAnimator = m_TimerText.GetComponent<Animator>();
+        m_GameTimerText = m_TimerText.GetComponent<Text>();
         m_CardPairsCounter = 0;
         m_TotalCards = m_Rows * m_Columns;
+        m_CardList = new Card[m_TotalCards];
         m_State = State.INITIALIZE;
         m_DestinationPosition.x = m_World.position.x - (((float)m_Columns / 2 * (CARDWIDTH + m_CardGap)) - (CARDWIDTH / 2f + m_CardGap / 2f));
         m_DestinationPosition.y = m_World.position.y + (((float)m_Rows / 2 * (CARDHEIGHT + m_CardGap)) - (CARDHEIGHT / 2f + m_CardGap / 2f));
@@ -119,48 +160,116 @@ public class GameController : MonoBehaviour
         }
     }
 
-   void InitializeCards(Card card)
+
+    IEnumerator GameTimer()
     {
-        if(card.Canflip)
+        CheckInputStatus(m_CardIdIndex);
+        while (m_Timer > MIN_TIME)
         {
-            m_CardAssigningCounter++;
-            if(m_CardAssigningCounter == 1 && m_FirstCard == null)
+            SetTimerColor();
+            yield return new WaitForSeconds(WAITING_TIME);
+            m_Timer--;
+            m_TimerText.text = m_Timer.ToString();
+        }
+
+        m_State = State.LOSE;
+        BlinkTimer();
+        m_PopUp.ShowPopUp();        
+    }
+
+    void BlinkTimer()
+    {
+        m_BlinkTimer = !m_BlinkTimer;
+        m_GameTimerAnimator.SetBool(CAN_BLINK, m_BlinkTimer);
+    }
+
+
+    private void SetTimerColor()  
+    {
+        if (m_Timer == YELLOW_RANGE)
+        {
+            m_GameTimerText.color = Color.yellow;
+        }
+        else if (m_Timer == RED_RANGE)
+        {
+            m_GameTimerText.color = Color.red;
+        }
+        else if(m_Timer == BLINK_RANGE)
+        {
+            BlinkTimer();
+        }
+    }
+
+    void ResetTimer()
+    {
+        m_Timer = RESET_TIMER;
+    }
+
+    void GetClickedCard(Card card)
+    {
+        card.FlipCard();
+        if (m_FirstCard == null)
+        {
+            m_FirstCard = card;
+        }
+        else
+        {
+            m_SecondCard = card;
+            CheckCardType(m_FirstCard, m_SecondCard);
+            
+        }
+    }
+
+    IEnumerator Won()
+    {
+        if (m_BlinkTimer == true)
+        {
+            BlinkTimer();
+        }
+        yield return new WaitForSeconds(WONWAITING_TIME);
+        if (ScoreManager.ScoreManagerInstance.Score < 0f)
+        {
+            m_State = State.LOSE;
+        }
+        else
+        {
+            m_State = State.WIN;
+        }
+        m_PopUp.ShowPopUp();
+    }
+
+    private void CheckCardType(Card firstCard, Card secondCard)
+    {
+        m_FirstCard = null;
+        m_SecondCard = null;
+        if (firstCard.CurrentType == secondCard.CurrentType)
+        {
+            m_CardPairsCounter++;
+            ScoreManager.ScoreManagerInstance.IncrementScore();
+            StartCoroutine(ScaleCards(firstCard, secondCard));
+            if (m_CardPairsCounter >= m_TotalCards / 2)
             {
-                m_FirstCard = card;
-                m_FirstCard.FlipCard();
-            }
-            else if(m_CardAssigningCounter == 2 && m_SecondCard == null)
-            {
-                m_SecondCard = card;
-                m_SecondCard.FlipCard();
-                Card firstCard = m_FirstCard;
-                Card secondCard = m_SecondCard;
-                m_FirstCard = null;
-                m_SecondCard = null;
-                m_CardAssigningCounter = 0;
-                if (firstCard.CurrentType == secondCard.CurrentType)
-                {
-                    if(m_CardPairsCounter >= m_TotalCards/2)
-                    {
-                        Debug.Log("You win");
-                    }
-                    else
-                    {
-                        m_CardPairsCounter++;
-                    }
-                }
-                else
-                {
-                    StartCoroutine(UnFlipCards(firstCard, secondCard));
-                }
+                StopCoroutine(m_GameTimer);
+                StartCoroutine(Won());
             }
         }
-        //card.FlipCard();
+        else
+        {
+            ScoreManager.ScoreManagerInstance.DecrementScore();
+            StartCoroutine(UnFlipCards(firstCard, secondCard));
+        }
+    }
+
+    IEnumerator ScaleCards(Card firstCard, Card secondCard)
+    {
+        yield return new WaitForSeconds(WAITING_TIME);
+        firstCard.ScaleCard();
+        secondCard.ScaleCard();
     }
 
     IEnumerator UnFlipCards(Card firstCard, Card secondCard)
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(WAITING_TIME);
         firstCard.FlipCard();
         secondCard.FlipCard();
     }
@@ -225,30 +334,49 @@ public class GameController : MonoBehaviour
         m_CanPutNextCard = true;
     }
 
-   
     IEnumerator DistributeCard()
     {
-        int tempCardId = 0;
         for (int rows = 0; rows < m_Rows; rows++)
         {
             for (int columns = 0; columns < m_Columns; columns++)
             {
                 m_CanPutNextCard = false;
-                GameObject tempCard = Instantiate(m_CardPrefab, m_InitialPosition, Quaternion.identity, m_World);
-                Card card = tempCard.GetComponent<Card>();
-                card.Initialize(tempCardId, m_CardData[(int)m_FaceCardType[tempCardId]], m_InitialPosition, m_DestinationPosition, m_NextCardCallBack);
+                if(m_State == State.INITIALIZE)
+                {
+                    GameObject tempCard = Instantiate(m_CardPrefab, m_InitialPosition, Quaternion.identity, m_World);
+                    Card card = tempCard.GetComponent<Card>();
+                    m_CardList[m_CardIdIndex]= card;
+                }
+                m_CardList[m_CardIdIndex].Initialize(m_CardIdIndex, m_CardData[(int)m_FaceCardType[m_CardIdIndex]], m_InitialPosition, m_DestinationPosition, m_NextCardCallBack);
                 while (m_CanPutNextCard == false)
                 {
                     yield return new WaitForEndOfFrame();
                 }
                 m_DestinationPosition.x += CARDWIDTH + m_CardGap;
-                tempCardId++;
+                m_CardIdIndex++;
             }
             m_DestinationPosition.x = m_World.position.x - (((float)m_Columns / 2 * (CARDWIDTH + m_CardGap)) - (CARDWIDTH /2f + m_CardGap / 2f));
             m_DestinationPosition.y -= CARDHEIGHT + m_CardGap;
         }
-        CheckInputStatus(tempCardId);
+        StartCoroutine(CountDown());
     }
+
+    IEnumerator CountDown()
+    {
+        m_CountDownBackground.SetActive(true);
+        m_CountDownText.gameObject.SetActive(true);
+        while(m_CountDownIndex >= ZERO_INDEX)
+        {
+            
+            m_CountDownText.text = m_CountDown[m_CountDownIndex];
+            yield return new WaitForSeconds(WAITING_TIME);
+            m_CountDownIndex--;
+        }
+        m_CountDownText.gameObject.SetActive(false);
+        m_CountDownBackground.SetActive(false);
+        m_GameTimer = StartCoroutine(GameTimer());
+    }
+
 
     private void CheckInputStatus(int id)
     {
@@ -257,6 +385,56 @@ public class GameController : MonoBehaviour
             m_State = State.PLAY;
         }
     }
-}
 
+    IEnumerator UnflipAllCards()
+    {
+        for (int index = 0; index < m_CardList.Length; index++)
+        {
+            if(!m_CardList[index].Canflip)//!
+            {
+                m_CardList[index].FlipCard();
+                yield return new WaitForSeconds(FLIPCARDWAIT);
+            }
+            m_CardList[index].MoveToIdle();
+        }
+        StartCoroutine(MoveCardsToInitialPosition());
+    }
+
+    IEnumerator MoveCardsToInitialPosition()
+    {
+        for (int index = 0; index < m_CardList.Length; index++)
+        {
+            m_CanPutNextCard = false;
+            StartCoroutine(m_CardList[index].MoveCard(m_CardList[index].transform.localPosition, m_InitialPosition, m_NextCardCallBack));
+            while (m_CanPutNextCard == false)
+            {
+                yield return new WaitForEndOfFrame();
+            }
+        }
+        ShuffleCardType(m_FaceCardType);
+        StartCoroutine(DistributeCard());
+    }
+
+
+    public void ResetGame()
+    {
+        ResetVariables();
+        ScoreManager.ScoreManagerInstance.ResetScore();
+        ResetTimer();
+        StartCoroutine(UnflipAllCards());
+    }
+
+    private void ResetVariables()
+    {
+        m_State = State.RESET;
+        m_GameTimerText.color = Color.green;
+        m_CardIdIndex = ZERO_INDEX;
+        m_CardPairsCounter = RESET_COUNTER;
+        m_CountDownIndex = TOTALCOUNTDOWN;
+        m_CountDownText.text = TOTALCOUNTDOWNSTRING;
+        m_GameTimerText.text = TOTALGAMETIMER;
+        m_DestinationPosition.x = m_World.position.x - (((float)m_Columns / 2 * (CARDWIDTH + m_CardGap)) - (CARDWIDTH / 2f + m_CardGap / 2f));
+        m_DestinationPosition.y = m_World.position.y + (((float)m_Rows / 2 * (CARDHEIGHT + m_CardGap)) - (CARDHEIGHT / 2f + m_CardGap / 2f));
+    }
+}
 
