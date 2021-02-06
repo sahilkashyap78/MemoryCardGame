@@ -412,6 +412,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80091a810011fcd47b6b65f72713f8f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_TimerText: {fileID: 1748357739}
+  m_GameController: {fileID: 602067588}
+  m_PopUp: {fileID: 736880641}
 --- !u!114 &602067588 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
@@ -1551,7 +1554,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 2
+      scalar: 5
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -6306,6 +6309,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 533098012}
+        m_MethodName: ResetTimer
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1865726172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6539,6 +6553,11 @@ PrefabInstance:
       propertyPath: m_CountDownBackground
       value: 
       objectReference: {fileID: 1625709100}
+    - target: {fileID: 6452734732273810998, guid: ca6be970e1f7b5844ab11ca723914670,
+        type: 3}
+      propertyPath: m_GameTime
+      value: 
+      objectReference: {fileID: 533098012}
     - target: {fileID: 6452734732273810999, guid: ca6be970e1f7b5844ab11ca723914670,
         type: 3}
       propertyPath: m_LocalPosition.x

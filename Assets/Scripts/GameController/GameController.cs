@@ -77,6 +77,7 @@ public class GameController : MonoBehaviour
     private Text m_CountDownText;
     private int m_CardIdIndex;
     private Coroutine m_GameTimer = null;
+    private Coroutine m_GameTimerCoroutine = null;
     private bool m_BlinkTimer;
     private const int ZERO_INDEX = 0;
     private const int RESET_COUNTER = 0;
@@ -92,6 +93,8 @@ public class GameController : MonoBehaviour
     private string[] m_CountDown = { "GO", "1", "2", "3" };
     [SerializeField]
     private GameObject m_CountDownBackground;
+    [SerializeField]
+    GameTimer m_GameTime;
     //create array for the card list
     public enum State
     {
@@ -116,6 +119,10 @@ public class GameController : MonoBehaviour
         get
         {
             return m_State;
+        }
+        set
+        {
+            m_State = value;
         }
     }
 
@@ -161,50 +168,6 @@ public class GameController : MonoBehaviour
     }
 
 
-    IEnumerator GameTimer()
-    {
-        CheckInputStatus(m_CardIdIndex);
-        while (m_Timer > MIN_TIME)
-        {
-            SetTimerColor();
-            yield return new WaitForSeconds(WAITING_TIME);
-            m_Timer--;
-            m_TimerText.text = m_Timer.ToString();
-        }
-
-        m_State = State.LOSE;
-        BlinkTimer();
-        m_PopUp.ShowPopUp();        
-    }
-
-    void BlinkTimer()
-    {
-        m_BlinkTimer = !m_BlinkTimer;
-        m_GameTimerAnimator.SetBool(CAN_BLINK, m_BlinkTimer);
-    }
-
-
-    private void SetTimerColor()  
-    {
-        if (m_Timer == YELLOW_RANGE)
-        {
-            m_GameTimerText.color = Color.yellow;
-        }
-        else if (m_Timer == RED_RANGE)
-        {
-            m_GameTimerText.color = Color.red;
-        }
-        else if(m_Timer == BLINK_RANGE)
-        {
-            BlinkTimer();
-        }
-    }
-
-    void ResetTimer()
-    {
-        m_Timer = RESET_TIMER;
-    }
-
     void GetClickedCard(Card card)
     {
         card.FlipCard();
@@ -222,9 +185,9 @@ public class GameController : MonoBehaviour
 
     IEnumerator Won()
     {
-        if (m_BlinkTimer == true)
+        if (m_GameTime.blinkTimer == true)
         {
-            BlinkTimer();
+            m_GameTime.BlinkTimer();
         }
         yield return new WaitForSeconds(WONWAITING_TIME);
         if (ScoreManager.ScoreManagerInstance.Score < 0f)
@@ -374,7 +337,8 @@ public class GameController : MonoBehaviour
         }
         m_CountDownText.gameObject.SetActive(false);
         m_CountDownBackground.SetActive(false);
-        m_GameTimer = StartCoroutine(GameTimer());
+        CheckInputStatus(m_CardIdIndex);
+        m_GameTimer = StartCoroutine(m_GameTime.Timer());
     }
 
 
@@ -420,12 +384,13 @@ public class GameController : MonoBehaviour
     {
         ResetVariables();
         ScoreManager.ScoreManagerInstance.ResetScore();
-        ResetTimer();
         StartCoroutine(UnflipAllCards());
     }
 
     private void ResetVariables()
     {
+        m_FirstCard = null;
+        m_SecondCard = null;
         m_State = State.RESET;
         m_GameTimerText.color = Color.green;
         m_CardIdIndex = ZERO_INDEX;
